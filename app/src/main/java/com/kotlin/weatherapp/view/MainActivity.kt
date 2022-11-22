@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -34,9 +35,23 @@ import com.kotlin.weatherapp.models.WeatherResponse
 import com.kotlin.weatherapp.network.WeatherService
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
+
+  private lateinit var tvMain: TextView
+  private lateinit var tvMainDescription: TextView
+  private lateinit var tvTemp: TextView
+  private lateinit var tvSunriseTime: TextView
+  private lateinit var tvSunsetTime: TextView
+  private lateinit var tvHumidity: TextView
+  private lateinit var tvMin: TextView
+  private lateinit var tvMax: TextView
+  private lateinit var tvSpeed: TextView
+  private lateinit var tvName: TextView
+  private lateinit var tvCountry: TextView
 
   // Get location of long, lat.
   private lateinit var mFusedLocationClient: FusedLocationProviderClient
@@ -46,6 +61,18 @@ class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
+
+    tvMain = findViewById(R.id.tv_main)
+    tvMainDescription = findViewById(R.id.tv_main_description)
+    tvTemp = findViewById(R.id.tv_temp)
+    tvSunriseTime = findViewById(R.id.tv_sunrise_time)
+    tvSunsetTime = findViewById(R.id.tv_sunset_time)
+    tvHumidity = findViewById(R.id.tv_humidity)
+    tvMin = findViewById(R.id.tv_min)
+    tvMax = findViewById(R.id.tv_max)
+    tvSpeed = findViewById(R.id.tv_speed)
+    tvName = findViewById(R.id.tv_name)
+    tvCountry = findViewById(R.id.tv_country)
 
     mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -142,10 +169,13 @@ class MainActivity : AppCompatActivity() {
       showCustomProgressDialog()
 
       listCall.enqueue(object: Callback<WeatherResponse>{
+        // ----- On Response ------- //
+        @RequiresApi(Build.VERSION_CODES.N)
         override fun onResponse(call: Call<WeatherResponse>, response: Response<WeatherResponse>) {
           if (response.isSuccessful) {
             hideProgressDialog()
             val weatherList: WeatherResponse? = response.body()
+            setupUI(weatherList)
             Log.i("Response Result", "$weatherList")
           } else {
             when (response.code()) {
@@ -214,5 +244,44 @@ class MainActivity : AppCompatActivity() {
     if(mProgressDialog != null){
       mProgressDialog!!.dismiss()
     }
+  }
+
+  // --------------------------- UI ------------------------- //
+  @RequiresApi(Build.VERSION_CODES.N)
+  @SuppressLint("SetTextI18n")
+  private fun setupUI(weatherList: WeatherResponse?){
+    for(i in weatherList!!.weather.indices){
+      Log.i("Weather Name", weatherList.weather.toString())
+
+
+      tvMain.text = weatherList.weather[i].main
+      tvMainDescription.text = weatherList.weather[i].description
+      tvTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+      tvHumidity.text = weatherList.main.humidity.toString() + " %"
+      tvMin.text = weatherList.main.temp_min.toString() + "°C Min"
+      tvMax.text = weatherList.main.temp_max.toString() + "°C Max"
+      tvSpeed.text = weatherList.wind.speed.toString()
+      tvName.text = weatherList.name
+      tvCountry.text = weatherList.sys.country
+
+      tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
+      tvSunsetTime.text = unixTime(weatherList.sys.sunset)
+    }
+  }
+
+  private fun getUnit(value: String): String{
+    var value = "°C"
+    if("US" == value || "LR" == value || "MM" == value){
+      value = "°F"
+    }
+    return value
+  }
+
+  @SuppressLint("SimpleDateFormat")
+  private fun unixTime(timex:Long): String?{
+    val date = Date(timex *1000L)
+    val simpleDateFormat = SimpleDateFormat("HH:mm", Locale.US)
+    simpleDateFormat.timeZone = TimeZone.getDefault()
+    return simpleDateFormat.format(date)
   }
 }
