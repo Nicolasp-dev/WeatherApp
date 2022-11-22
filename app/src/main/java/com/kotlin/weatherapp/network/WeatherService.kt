@@ -1,4 +1,4 @@
-package com.kotlin.weatherapp.netwoork
+package com.kotlin.weatherapp.network
 
 import com.kotlin.weatherapp.models.WeatherResponse
 import retrofit2.Call

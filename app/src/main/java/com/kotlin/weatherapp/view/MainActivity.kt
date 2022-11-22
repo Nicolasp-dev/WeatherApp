@@ -1,7 +1,8 @@
-package com.kotlin.weatherapp
+package com.kotlin.weatherapp.view
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -27,16 +28,20 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.kotlin.weatherapp.Constants
+import com.kotlin.weatherapp.R
 import com.kotlin.weatherapp.models.WeatherResponse
-import com.kotlin.weatherapp.netwoork.WeatherService
+import com.kotlin.weatherapp.network.WeatherService
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
-import java.nio.file.WatchService
+
 
 class MainActivity : AppCompatActivity() {
 
   // Get location of long, lat.
   private lateinit var mFusedLocationClient: FusedLocationProviderClient
+
+  private var mProgressDialog: Dialog? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -91,6 +96,8 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+
+
   @RequiresApi(Build.VERSION_CODES.S)
   @SuppressLint("MissingPermission")
   private fun requestLocationData(){
@@ -132,9 +139,12 @@ class MainActivity : AppCompatActivity() {
         latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID
       )
 
+      showCustomProgressDialog()
+
       listCall.enqueue(object: Callback<WeatherResponse>{
         override fun onResponse(call: Call<WeatherResponse>, response: Response<WeatherResponse>) {
           if (response.isSuccessful) {
+            hideProgressDialog()
             val weatherList: WeatherResponse? = response.body()
             Log.i("Response Result", "$weatherList")
           } else {
@@ -153,6 +163,7 @@ class MainActivity : AppCompatActivity() {
         }
           override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
             Log.e("Error", t.message.toString())
+            hideProgressDialog()
           }
       })
 
@@ -190,5 +201,18 @@ class MainActivity : AppCompatActivity() {
 
     return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
             locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+  }
+
+  // -------------------- DIALOG ------------------ //
+  private fun showCustomProgressDialog(){
+    mProgressDialog = Dialog(this)
+    mProgressDialog!!.setContentView(R.layout.custom_dialog_progress)
+    mProgressDialog!!.show()
+  }
+
+  private fun hideProgressDialog(){
+    if(mProgressDialog != null){
+      mProgressDialog!!.dismiss()
+    }
   }
 }
