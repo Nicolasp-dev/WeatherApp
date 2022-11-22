@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -53,6 +54,8 @@ class MainActivity : AppCompatActivity() {
   private lateinit var tvName: TextView
   private lateinit var tvCountry: TextView
 
+  private lateinit var ivMain: ImageView
+
   // Get location of long, lat.
   private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
@@ -73,6 +76,8 @@ class MainActivity : AppCompatActivity() {
     tvSpeed = findViewById(R.id.tv_speed)
     tvName = findViewById(R.id.tv_name)
     tvCountry = findViewById(R.id.tv_country)
+
+    ivMain = findViewById(R.id.iv_main)
 
     mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -266,6 +271,24 @@ class MainActivity : AppCompatActivity() {
 
       tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
       tvSunsetTime.text = unixTime(weatherList.sys.sunset)
+
+      when(weatherList.weather[i].icon){
+        "01d" -> ivMain.setImageResource(R.drawable.sunny)
+        "02d" -> ivMain.setImageResource(R.drawable.cloud)
+        "03d" -> ivMain.setImageResource(R.drawable.cloud)
+        "04d" -> ivMain.setImageResource(R.drawable.cloud)
+        "04n" -> ivMain.setImageResource(R.drawable.cloud)
+        "10d" -> ivMain.setImageResource(R.drawable.rain)
+        "11d" -> ivMain.setImageResource(R.drawable.storm)
+        "13d" -> ivMain.setImageResource(R.drawable.snowflake)
+        "01n" -> ivMain.setImageResource(R.drawable.cloud)
+        "02n" -> ivMain.setImageResource(R.drawable.cloud)
+        "03n" -> ivMain.setImageResource(R.drawable.cloud)
+        "10n" -> ivMain.setImageResource(R.drawable.cloud)
+        "11n" -> ivMain.setImageResource(R.drawable.rain)
+        "13n" -> ivMain.setImageResource(R.drawable.snowflake)
+
+      }
     }
   }
 
